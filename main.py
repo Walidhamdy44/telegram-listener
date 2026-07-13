@@ -29,6 +29,13 @@ SESSION_STRING = os.getenv("SESSION_STRING")
 TARGET_SENDER_NAME = "Task Officer"  # Filter by sender display name
 TARGET_CHAT_ID = None                # e.g. -1001234567890 (None = any chat)
 
+# Messages starting with these phrases will be ignored
+SKIP_PREFIXES = [
+    "المهمة الجاية هتتنشر في الجروب قريب جدًا",
+    "فيه 21 مهمة كل يوم",
+    "لتأكيد Task",
+]
+
 # ---------------------------------------------------------------------------
 # Validate credentials
 # ---------------------------------------------------------------------------
@@ -74,6 +81,10 @@ async def handle_new_message(event):
 
         # Only process messages from "Task Officer" (case-insensitive)
         if sender_name.lower() != TARGET_SENDER_NAME.lower():
+            return
+
+        # Skip messages that start with known irrelevant phrases
+        if any(message_text.strip().startswith(prefix) for prefix in SKIP_PREFIXES):
             return
 
         # If a specific chat is configured, filter by it
