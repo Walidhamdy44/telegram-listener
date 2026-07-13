@@ -1,13 +1,11 @@
 """
-Telegram Listener - Monitors messages from "Task Officer" and sends
-a push notification via a bot.
-
-Designed to run on a server (Railway, etc.) using a string session
-so no interactive login is needed.
+Telegram Listener - Monitors messages from "Task Officer", extracts
+Google Maps links, and sends a notification via a bot.
 """
 
 import asyncio
 import os
+import re
 import sys
 
 from dotenv import load_dotenv
@@ -89,6 +87,12 @@ async def handle_new_message(event):
             f"Sender: {sender_name}\n\n"
             f"Message:\n{message_text}"
         )
+
+        # Extract Google Maps links from the message
+        urls = re.findall(r'https?://(?:maps\.app\.goo\.gl|(?:www\.)?google\.\w+/maps)\S+', message_text)
+
+        if urls:
+            notification += f"\n\n🗺️ Google Maps Link:\n{urls[0]}"
 
         # Send notification via bot (triggers push notification)
         await bot.send_message(MY_CHAT_ID, notification)
