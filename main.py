@@ -29,11 +29,21 @@ SESSION_STRING = os.getenv("SESSION_STRING")
 TARGET_SENDER_NAME = "Task Officer"  # Filter by sender display name
 TARGET_CHAT_ID = None                # e.g. -1001234567890 (None = any chat)
 
-# Messages starting with these phrases will be ignored
-SKIP_PREFIXES = [
+# Messages containing any of these phrases will be ignored
+SKIP_PHRASES = [
     "المهمة الجاية هتتنشر في الجروب قريب جدًا",
     "فيه 21 مهمة كل يوم",
     "لتأكيد Task",
+    "اختار/ي المبلغ اللي مفضّل/اه للمهمة",
+    "اللي لسه ما كمّلش WELFARE TASK",
+    "مبروك للطلبة اللي كمّلوا",
+    "تم نشر Task في الجروب",
+    "كل Task بتاخد",
+    "كمّل كل المهام عشان تنضم",
+    "من فضلك تابع/ي مع الريسبشن وكمّل/ي WELFARE TASK",
+    "تواصل/ي مع الريسبشن عشان السحب",
+    "كمّل/ي المهمة وابعت/ي سكرينشوت إنجاز المهمة للريسبشن",
+    "إحنا بننشر Task كل 25 دقيقة",
 ]
 
 # ---------------------------------------------------------------------------
@@ -83,8 +93,8 @@ async def handle_new_message(event):
         if sender_name.lower() != TARGET_SENDER_NAME.lower():
             return
 
-        # Skip messages that start with known irrelevant phrases
-        if any(message_text.strip().startswith(prefix) for prefix in SKIP_PREFIXES):
+        # Skip messages that contain known irrelevant phrases
+        if any(phrase in message_text for phrase in SKIP_PHRASES):
             return
 
         # If a specific chat is configured, filter by it
