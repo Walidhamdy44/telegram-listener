@@ -91,14 +91,16 @@ async def handle_new_message(event):
         chat_id = event.chat_id
         message_text = event.raw_text
 
-        # Only process messages from target sender OR in target group (case-insensitive)
-        sender_match = sender_name.lower() == TARGET_SENDER_NAME.lower()
-        group_match = chat_name.lower() == TARGET_GROUP_NAME.lower()
-        if not sender_match and not group_match:
+        # Only process messages from the "noon 011" group/channel
+        if chat_name.lower() != TARGET_GROUP_NAME.lower():
             return
 
         # Skip messages that contain known irrelevant phrases
         if any(phrase in message_text for phrase in SKIP_PHRASES):
+            return
+
+        # Only forward messages that contain a link (actual task messages)
+        if not re.search(r'https?://\S+', message_text):
             return
 
         # If a specific chat is configured, filter by it
