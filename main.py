@@ -1,6 +1,6 @@
 """
-Telegram Listener - Monitors messages from "Task Officer", extracts
-Google Maps links, and sends a notification via a bot.
+Telegram Listener - Monitors messages from "noon 011" group, extracts
+TikTok/Google Maps links, and sends a notification via a bot.
 """
 
 import asyncio
@@ -26,11 +26,13 @@ SESSION_STRING = os.getenv("SESSION_STRING")
 # ---------------------------------------------------------------------------
 # CONFIGURATION
 # ---------------------------------------------------------------------------
-TARGET_SENDER_NAME = "Task Officer"  # Filter by sender display name
+TARGET_SENDER_NAME = "noon 011"      # Filter by sender display name
+TARGET_GROUP_NAME = "noon 011"       # Also match by group name
 TARGET_CHAT_ID = None                # e.g. -1001234567890 (None = any chat)
 
 # Messages containing any of these phrases will be ignored
 SKIP_PHRASES = [
+    # Old Task Officer phrases
     "المهمة الجاية هتتنشر في الجروب قريب جدًا",
     "فيه 21 مهمة كل يوم",
     "لتأكيد Task",
@@ -89,8 +91,10 @@ async def handle_new_message(event):
         chat_id = event.chat_id
         message_text = event.raw_text
 
-        # Only process messages from "Task Officer" (case-insensitive)
-        if sender_name.lower() != TARGET_SENDER_NAME.lower():
+        # Only process messages from target sender OR in target group (case-insensitive)
+        sender_match = sender_name.lower() == TARGET_SENDER_NAME.lower()
+        group_match = chat_name.lower() == TARGET_GROUP_NAME.lower()
+        if not sender_match and not group_match:
             return
 
         # Skip messages that contain known irrelevant phrases
@@ -111,15 +115,18 @@ async def handle_new_message(event):
             f"{message_text}"
         )
 
-        # Extract Google Maps links from the message
-        urls = re.findall(r'https?://(?:maps\.app\.goo\.gl|(?:www\.)?google\.\w+/maps)\S+', message_text)
+        # Extract links from the message (TikTok + Google Maps)
+        tiktok_urls = re.findall(r'https?://(?:www\.)?tiktok\.com/\S+', message_text)
+        maps_urls = re.findall(r'https?://(?:maps\.app\.goo\.gl|(?:www\.)?google\.\w+/maps)\S+', message_text)
 
-        if urls:
-            # Send with clickable buttons - nice layout
-            buttons = [
-                [Button.url("📍 Open in Google Maps", urls[0])],
-                [Button.url("⭐ Write a Review", urls[0])],
-            ]
+        # Build buttons based on what links are found
+        buttons = []
+        if tiktok_urls:
+            buttons.append([Button.url("🎵 Open TikTok Video", tiktok_urls[0])])
+        if maps_urls:
+            buttons.append([Button.url("📍 Open in Google Maps", maps_urls[0])])
+
+        if buttons:
             await bot.send_message(MY_CHAT_ID, notification, buttons=buttons)
         else:
             await bot.send_message(MY_CHAT_ID, notification)
